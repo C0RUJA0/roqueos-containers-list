@@ -1,0 +1,59 @@
+name: mattermost
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mattermost-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: change-me-to-a-long-random-string
+      POSTGRES_DB: mattermost
+    volumes:
+      - /DATA/AppData/$AppID/postgres:/var/lib/postgresql/data
+
+  mattermost:
+    image: mattermost/mattermost-team-edition:10.2
+    container_name: mattermost
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8065:8065"
+    environment:
+      TZ: America/Sao_Paulo
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:change-me-to-a-long-random-string@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+      MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+    volumes:
+      - /DATA/AppData/$AppID/data:/mattermost/data
+      - /DATA/AppData/$AppID/logs:/mattermost/logs
+      - /DATA/AppData/$AppID/config:/mattermost/config
+      - /DATA/AppData/$AppID/plugins:/mattermost/plugins
+      - /DATA/AppData/$AppID/client-plugins:/mattermost/client/plugins
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: mattermost
+  author: roqueribeiro
+  developer: Mattermost
+  category: RoqueOS
+  icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/mattermost.png
+  title:
+    en_us: Mattermost
+    pt_br: Mattermost
+  tagline:
+    en_us: Self-hosted team communication platform
+    pt_br: Plataforma de comunicacao de equipe auto-hospedada
+  description:
+    en_us: Mattermost Team Edition with PostgreSQL.
+    pt_br: Mattermost Team Edition com PostgreSQL.
+  scheme: http
+  index: /
+  port_map: "8065"
+  tips:
+    before_install:
+      en_us: Replace POSTGRES_PASSWORD and the password inside MM_SQLSETTINGS_DATASOURCE before first install.
+      pt_br: Troque POSTGRES_PASSWORD e a senha dentro de MM_SQLSETTINGS_DATASOURCE antes da primeira instalacao.
